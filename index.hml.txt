@@ -5,17 +5,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>芸能労災保険 料金シミュレーション</title>
   
-  <!-- Tailwind CSS (CDN経由で読み込み) -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- ReactとBabel (CDN経由で読み込み) -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- ReactとBabel (より安定しているcdnjsに変更) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.6/babel.min.js"></script>
 </head>
 <body>
-  <!-- Reactアプリが描画される場所 -->
-  <div id="root"></div>
+  <!-- Reactアプリが描画される場所。エラー時はこの文字が残ります -->
+  <div id="root">
+    <div style="text-align:center; padding: 100px 20px; font-family: sans-serif;">
+      <h2 style="color: #2563eb; margin-bottom: 20px;">シミュレーション画面を準備中です...</h2>
+      <p style="color: #666;">※いつまでもこの画面が変わらない場合、キーボードの <strong>Ctrl + F5</strong>（Macは <strong>Command + Shift + R</strong>）を押してページを更新してください。</p>
+    </div>
+  </div>
 
   <!-- ここからReactのコード -->
   <script type="text/babel">
