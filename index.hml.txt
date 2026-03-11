@@ -1,208 +1,264 @@
-import React, { useState } from 'react';
-import { Calculator, Calendar, CreditCard, Info, CheckCircle2 } from 'lucide-react';
-
-// エクセルから抽出・補完した料金データの配列
-// 実際の運用に合わせて、ここの数値を修正・追加するだけでシステム全体に反映されます
-const PLAN_DATA = [
-  { daily: 25000, annual: 27375, monthlyPremium: 2281.25, baseFee: 500, advanceFee: 218.75, monthlyTotal: 3000 },
-  { daily: 24000, annual: 26280, monthlyPremium: 2190, baseFee: 500, advanceFee: 210, monthlyTotal: 2900 },
-  { daily: 22000, annual: 24090, monthlyPremium: 2007.5, baseFee: 500, advanceFee: 292.5, monthlyTotal: 2800 },
-  { daily: 20000, annual: 21900, monthlyPremium: 1825, baseFee: 500, advanceFee: 375, monthlyTotal: 2700 },
-  { daily: 18000, annual: 19710, monthlyPremium: 1642.5, baseFee: 500, advanceFee: 157.5, monthlyTotal: 2300 },
-  { daily: 16000, annual: 17520, monthlyPremium: 1460, baseFee: 500, advanceFee: 140, monthlyTotal: 2100 },
-  { daily: 14000, annual: 15330, monthlyPremium: 1277.5, baseFee: 500, advanceFee: 122.5, monthlyTotal: 1900 },
-  { daily: 12000, annual: 13140, monthlyPremium: 1095, baseFee: 500, advanceFee: 105, monthlyTotal: 1700 },
-  { daily: 10000, annual: 10950, monthlyPremium: 912.5, baseFee: 500, advanceFee: 87.5, monthlyTotal: 1500 },
-  { daily: 8000, annual: 8760, monthlyPremium: 730, baseFee: 500, advanceFee: 170, monthlyTotal: 1400 },
-  { daily: 6000, annual: 6570, monthlyPremium: 547.5, baseFee: 500, advanceFee: 152.5, monthlyTotal: 1200 },
-  { daily: 5000, annual: 5475, monthlyPremium: 456.25, baseFee: 500, advanceFee: 143.75, monthlyTotal: 1100 },
-  { daily: 4000, annual: 4380, monthlyPremium: 365, baseFee: 500, advanceFee: 135, monthlyTotal: 1000 },
-  { daily: 3500, annual: 3832.5, monthlyPremium: 319.375, baseFee: 500, advanceFee: 180.625, monthlyTotal: 1000 },
-];
-
-export default function App() {
-  // --- 状態管理（State） ---
-  // デフォルトは日額10,000円、契約期間は6ヶ月以上に設定
-  const [selectedDaily, setSelectedDaily] = useState(10000);
-  const [contractPeriod, setContractPeriod] = useState('6_more');
-
-  // --- 計算ロジック ---
-  // 選択された日額のデータを配列から取得
-  const currentPlan = PLAN_DATA.find((plan) => plan.daily === selectedDaily) || PLAN_DATA[8];
-
-  // 契約期間に応じた入会金の計算（エクセルの規定を再現）
-  const getAdmissionFee = (period) => {
-    if (period === '1_3') return 3000;
-    if (period === '4_5') return 2000;
-    return 0; // 6ヶ月以上は0円
-  };
-
-  const admissionFee = getAdmissionFee(contractPeriod);
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>芸能労災保険 料金シミュレーション</title>
   
-  // 初月のお支払い金額（月額合計 ＋ 入会金）
-  const firstMonthTotal = currentPlan.monthlyTotal + admissionFee;
+  <!-- Tailwind CSS (CDN経由で読み込み) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- ReactとBabel (CDN経由で読み込み) -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <!-- Reactアプリが描画される場所 -->
+  <div id="root"></div>
 
-  // --- ユーティリティ関数 ---
-  // 金額をカンマ区切りの円表記にし、1円未満（小数点以下）を切り捨てるヘルパー関数
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('ja-JP').format(Math.floor(amount)) + '円';
-  };
+  <!-- ここからReactのコード -->
+  <script type="text/babel">
+    const { useState } = React;
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 font-sans text-gray-800">
-      <div className="max-w-4xl mx-auto">
-        
-        {/* ヘッダー部分 */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold text-blue-900 mb-2 flex items-center justify-center gap-2">
-            <Calculator className="w-8 h-8 text-blue-600" />
-            芸能労災保険 料金シミュレーション
-          </h1>
-          <p className="text-gray-600">
-            ご希望の給付基礎日額とご契約期間を選択すると、すぐにお見積りを確認できます。
-          </p>
-        </div>
+    // エクセルから抽出・補完した料金データの配列
+    const PLAN_DATA = [
+      { daily: 25000, annual: 27375, monthlyPremium: 2281.25, baseFee: 500, advanceFee: 218.75, monthlyTotal: 3000 },
+      { daily: 24000, annual: 26280, monthlyPremium: 2190, baseFee: 500, advanceFee: 210, monthlyTotal: 2900 },
+      { daily: 22000, annual: 24090, monthlyPremium: 2007.5, baseFee: 500, advanceFee: 292.5, monthlyTotal: 2800 },
+      { daily: 20000, annual: 21900, monthlyPremium: 1825, baseFee: 500, advanceFee: 375, monthlyTotal: 2700 },
+      { daily: 18000, annual: 19710, monthlyPremium: 1642.5, baseFee: 500, advanceFee: 157.5, monthlyTotal: 2300 },
+      { daily: 16000, annual: 17520, monthlyPremium: 1460, baseFee: 500, advanceFee: 140, monthlyTotal: 2100 },
+      { daily: 14000, annual: 15330, monthlyPremium: 1277.5, baseFee: 500, advanceFee: 122.5, monthlyTotal: 1900 },
+      { daily: 12000, annual: 13140, monthlyPremium: 1095, baseFee: 500, advanceFee: 105, monthlyTotal: 1700 },
+      { daily: 10000, annual: 10950, monthlyPremium: 912.5, baseFee: 500, advanceFee: 87.5, monthlyTotal: 1500 },
+      { daily: 8000, annual: 8760, monthlyPremium: 730, baseFee: 500, advanceFee: 170, monthlyTotal: 1400 },
+      { daily: 6000, annual: 6570, monthlyPremium: 547.5, baseFee: 500, advanceFee: 152.5, monthlyTotal: 1200 },
+      { daily: 5000, annual: 5475, monthlyPremium: 456.25, baseFee: 500, advanceFee: 143.75, monthlyTotal: 1100 },
+      { daily: 4000, annual: 4380, monthlyPremium: 365, baseFee: 500, advanceFee: 135, monthlyTotal: 1000 },
+      { daily: 3500, annual: 3832.5, monthlyPremium: 319.375, baseFee: 500, advanceFee: 180.625, monthlyTotal: 1000 },
+    ];
 
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-          <div className="grid grid-cols-1 md:grid-cols-2">
+    // SVGアイコンのコンポーネント
+    const CalculatorIcon = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-blue-600"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+    );
+    const CalendarIcon = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-blue-600"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+    );
+    const CreditCardIcon = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 text-blue-400"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+    );
+    const InfoIcon = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+    );
+    const CheckCircleIcon = () => (
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><circle cx="12" cy="12" r="10"></circle><polyline points="9 11 12 14 22 4"></polyline></svg>
+    );
+
+    function App() {
+      const [selectedDaily, setSelectedDaily] = useState(10000);
+      const [contractPeriod, setContractPeriod] = useState(12);
+
+      const currentPlan = PLAN_DATA.find((plan) => plan.daily === selectedDaily) || PLAN_DATA[8];
+
+      const getAdmissionFee = (months) => {
+        if (months >= 1 && months <= 3) return 3000;
+        if (months >= 4 && months <= 5) return 2000;
+        return 0;
+      };
+
+      const admissionFee = getAdmissionFee(contractPeriod);
+      const firstMonthTotal = currentPlan.monthlyTotal + admissionFee;
+
+      const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('ja-JP').format(Math.floor(amount)) + '円';
+      };
+
+      return (
+        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 font-sans text-gray-800">
+          <div className="max-w-4xl mx-auto">
             
-            {/* 左側：入力フォームパネル */}
-            <div className="p-8 bg-blue-50/50">
-              <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-blue-600" />
-                条件を選択してください
-              </h2>
+            {/* ヘッダー部分 */}
+            <div className="text-center mb-10">
+              <h1 className="text-3xl font-bold text-blue-900 mb-2 flex items-center justify-center gap-2">
+                <CalculatorIcon />
+                芸能労災保険 料金シミュレーション
+              </h1>
+              <p className="text-gray-600">
+                ご希望の給付基礎日額とご契約期間を選択すると、すぐにお見積りを確認できます。
+              </p>
+            </div>
 
-              {/* 給付基礎日額の選択 */}
-              <div className="mb-8">
-                <label className="block text-sm font-bold text-gray-700 mb-3">
-                  1. 給付基礎日額（休業時の1日あたりの補償額）
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedDaily}
-                    onChange={(e) => setSelectedDaily(Number(e.target.value))}
-                    className="block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-xl bg-white shadow-sm border appearance-none font-medium"
-                  >
-                    {PLAN_DATA.map((plan) => (
-                      <option key={plan.daily} value={plan.daily}>
-                        {formatCurrency(plan.daily)}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                    </svg>
+            <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
+              <div className="grid grid-cols-1 md:grid-cols-2">
+                
+                {/* 左側：入力フォームパネル */}
+                <div className="p-8 bg-blue-50/50">
+                  <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <CalendarIcon />
+                    条件を選択してください
+                  </h2>
+
+                  {/* 給付基礎日額の選択 */}
+                  <div className="mb-8">
+                    <label className="block text-sm font-bold text-gray-700 mb-3">
+                      1. 給付基礎日額（休業時の1日あたりの補償額）
+                    </label>
+                    <div className="relative">
+                      <select
+                        value={selectedDaily}
+                        onChange={(e) => setSelectedDaily(Number(e.target.value))}
+                        className="block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-xl bg-white shadow-sm border appearance-none font-medium"
+                      >
+                        {PLAN_DATA.map((plan) => (
+                          <option key={plan.daily} value={plan.daily}>
+                            {formatCurrency(plan.daily)}
+                          </option>
+                        ))}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 契約期間の選択 */}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-3">
+                      2. ご契約予定期間
+                    </label>
+                    <div className="relative mb-2">
+                      <select
+                        value={contractPeriod}
+                        onChange={(e) => setContractPeriod(Number(e.target.value))}
+                        className="block w-full pl-4 pr-10 py-3 text-base border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-xl bg-white shadow-sm border appearance-none font-medium"
+                      >
+                        {[...Array(36)].map((_, i) => {
+                          const month = i + 1;
+                          let label = `${month}ヶ月`;
+                          if (month % 12 === 0) {
+                            label += `（${month / 12}年）`;
+                          }
+                          if (month >= 12) {
+                            label += ' ※自動更新';
+                          }
+                          return (
+                            <option key={month} value={month}>
+                              {label}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      ※最大36ヶ月まで選択可能です。12ヶ月以上のご契約は自動更新となります。
+                    </p>
+                    
+                    {/* 入会金のお知らせ */}
+                    <div className="mt-4 p-4 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-between">
+                      <span className="text-sm text-gray-700 font-bold">入会金：</span>
+                      {contractPeriod >= 6 ? (
+                        <span className="text-sm font-bold text-green-600 bg-green-100 px-3 py-1.5 rounded-md shadow-sm">6ヶ月以上のため 無料</span>
+                      ) : (
+                        <span className="text-sm font-bold text-gray-800">{formatCurrency(admissionFee)}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* 契約期間の選択 */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-3">
-                  2. ご契約予定期間
-                </label>
-                <div className="space-y-3">
-                  <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${contractPeriod === '1_3' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
-                    <input type="radio" name="period" value="1_3" checked={contractPeriod === '1_3'} onChange={(e) => setContractPeriod(e.target.value)} className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" />
-                    <span className="ml-3 flex-1 text-sm font-medium text-gray-900">1ヶ月〜3ヶ月</span>
-                    <span className="text-sm text-gray-500">入会金 {formatCurrency(3000)}</span>
-                  </label>
-                  
-                  <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${contractPeriod === '4_5' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
-                    <input type="radio" name="period" value="4_5" checked={contractPeriod === '4_5'} onChange={(e) => setContractPeriod(e.target.value)} className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" />
-                    <span className="ml-3 flex-1 text-sm font-medium text-gray-900">4ヶ月〜5ヶ月</span>
-                    <span className="text-sm text-gray-500">入会金 {formatCurrency(2000)}</span>
-                  </label>
-                  
-                  <label className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${contractPeriod === '6_more' ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
-                    <input type="radio" name="period" value="6_more" checked={contractPeriod === '6_more'} onChange={(e) => setContractPeriod(e.target.value)} className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300" />
-                    <span className="ml-3 flex-1 text-sm font-medium text-gray-900">6ヶ月以上</span>
-                    <span className="text-sm font-bold text-green-600 bg-green-100 px-2 py-1 rounded-md">入会金 無料</span>
-                  </label>
+                {/* 右側：お見積り結果パネル */}
+                <div className="p-8 bg-gray-900 text-white flex flex-col justify-center">
+                  <h2 className="text-xl font-bold text-gray-100 mb-6 flex items-center gap-2">
+                    <CreditCardIcon />
+                    お見積り結果
+                  </h2>
+
+                  {/* 初月のお支払い */}
+                  <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-6 mb-6 shadow-lg border border-blue-400 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-lg">
+                      まずはこれだけ！
+                    </div>
+                    <p className="text-sm font-bold text-blue-100 mb-2">最初にお支払いいただく金額</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-extrabold tracking-tight text-white">
+                        {formatCurrency(firstMonthTotal)}
+                      </span>
+                    </div>
+                    {admissionFee > 0 ? (
+                      <p className="text-xs text-blue-100 mt-2 font-medium">※入会金 {formatCurrency(admissionFee)} を含みます</p>
+                    ) : (
+                      <p className="text-xs text-yellow-300 mt-2 font-bold">※入会金無料キャンペーン適用！</p>
+                    )}
+                  </div>
+
+                  {/* 毎月のお支払い */}
+                  <div className="bg-gray-800 rounded-xl p-6 mb-8 border border-gray-700">
+                    <p className="text-sm font-bold text-gray-400 mb-2">2ヶ月目以降のお支払い</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-extrabold text-white tracking-tight">
+                        {formatCurrency(currentPlan.monthlyTotal)}
+                      </span>
+                      <span className="text-gray-400 font-medium">/ 月</span>
+                    </div>
+                  </div>
+
+                  {/* 内訳詳細 */}
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-400 border-b border-gray-700 pb-2 mb-4 flex items-center gap-1">
+                      <InfoIcon /> 金額の内訳詳細
+                    </h3>
+                    <ul className="space-y-3 text-sm">
+                      <li className="flex justify-between items-center text-gray-300">
+                        <span>労災保険料（月割）</span>
+                        <span className="font-medium">{formatCurrency(currentPlan.monthlyPremium)}</span>
+                      </li>
+                      <li className="flex justify-between items-center text-gray-300">
+                        <span>月額手数料</span>
+                        <span className="font-medium">{formatCurrency(currentPlan.baseFee)}</span>
+                      </li>
+                      <li className="flex justify-between items-center text-gray-300">
+                        <span>立替月額手数料</span>
+                        <span className="font-medium">{formatCurrency(currentPlan.advanceFee)}</span>
+                      </li>
+                      {/* 年払い保険料の参考表示 */}
+                      <li className="flex justify-between items-center text-gray-500 pt-2 border-t border-gray-700 mt-2 text-xs">
+                        <span>(参考) 年払い保険料総額</span>
+                        <span>{formatCurrency(currentPlan.annual)}</span>
+                      </li>
+                    </ul>
+                  </div>
+
+                  {/* 申し込みボタン */}
+                  <div className="mt-8">
+                    <button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-orange-500/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                      <CheckCircleIcon />
+                      この条件で申し込む
+                    </button>
+                  </div>
+
                 </div>
               </div>
             </div>
-
-            {/* 右側：お見積り結果パネル（見やすさを劇的に改善） */}
-            <div className="p-8 bg-gray-900 text-white flex flex-col justify-center">
-              <h2 className="text-xl font-bold text-gray-100 mb-6 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-blue-400" />
-                お見積り結果
-              </h2>
-
-              {/* 初月のお支払い（一番目立たせる） */}
-              <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-6 mb-6 shadow-lg border border-blue-400 relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-yellow-400 text-yellow-900 text-xs font-bold px-3 py-1 rounded-bl-lg">
-                  まずはこれだけ！
-                </div>
-                <p className="text-sm font-bold text-blue-100 mb-2">最初にお支払いいただく金額</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-extrabold tracking-tight text-white">
-                    {formatCurrency(firstMonthTotal)}
-                  </span>
-                </div>
-                {admissionFee > 0 ? (
-                  <p className="text-xs text-blue-100 mt-2 font-medium">※入会金 {formatCurrency(admissionFee)} を含みます</p>
-                ) : (
-                  <p className="text-xs text-yellow-300 mt-2 font-bold">※入会金無料キャンペーン適用！</p>
-                )}
-              </div>
-
-              {/* 毎月のお支払い */}
-              <div className="bg-gray-800 rounded-xl p-6 mb-8 border border-gray-700">
-                <p className="text-sm font-bold text-gray-400 mb-2">2ヶ月目以降のお支払い</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-extrabold text-white tracking-tight">
-                    {formatCurrency(currentPlan.monthlyTotal)}
-                  </span>
-                  <span className="text-gray-400 font-medium">/ 月</span>
-                </div>
-              </div>
-
-              {/* 内訳詳細 */}
-              <div>
-                <h3 className="text-sm font-bold text-gray-400 border-b border-gray-700 pb-2 mb-4 flex items-center gap-1">
-                  <Info className="w-4 h-4" /> 金額の内訳詳細
-                </h3>
-                <ul className="space-y-3 text-sm">
-                  <li className="flex justify-between items-center text-gray-300">
-                    <span>労災保険料（月割）</span>
-                    <span className="font-medium">{formatCurrency(currentPlan.monthlyPremium)}</span>
-                  </li>
-                  <li className="flex justify-between items-center text-gray-300">
-                    <span>月額手数料</span>
-                    <span className="font-medium">{formatCurrency(currentPlan.baseFee)}</span>
-                  </li>
-                  <li className="flex justify-between items-center text-gray-300">
-                    <span>立替月額手数料</span>
-                    <span className="font-medium">{formatCurrency(currentPlan.advanceFee)}</span>
-                  </li>
-                  {/* 年払い保険料の参考表示 */}
-                  <li className="flex justify-between items-center text-gray-500 pt-2 border-t border-gray-700 mt-2 text-xs">
-                    <span>(参考) 年払い保険料総額</span>
-                    <span>{formatCurrency(currentPlan.annual)}</span>
-                  </li>
-                </ul>
-              </div>
-
-              {/* 申し込みボタン */}
-              <div className="mt-8">
-                <button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-orange-500/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
-                  <CheckCircle2 className="w-5 h-5" />
-                  この条件で申し込む
-                </button>
-              </div>
-
+            
+            <div className="mt-6 text-center text-sm text-gray-500">
+              ※このシミュレーション結果は概算です。実際の金額と数円の端数誤差が生じる場合があります。
             </div>
           </div>
         </div>
-        
-        <div className="mt-6 text-center text-sm text-gray-500">
-          ※このシミュレーション結果は概算です。実際の金額と数円の端数誤差が生じる場合があります。
-        </div>
-      </div>
-    </div>
-  );
-}
+      );
+    }
+
+    // アプリを描画
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
